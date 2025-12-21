@@ -46,7 +46,7 @@ public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, Electric
 
     private void schalteLichtAnAus() {
         System.out.println("Schalte Büro Licht " + (switchOff.get() ? "an" : "aus"));
-        var light = this.knxDevices.getKNXDevice(Light.class, Haus.Office);
+        var light = this.knxDevices.getKNXDevice(Light.class, HausTester.Office);
 
         light.ifPresent(l -> {
             System.out.println("Licht gefunden!");
@@ -60,14 +60,14 @@ public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, Electric
     }
 
     private void getLuftfeuchtigkeit() {
-        var humidity = this.knxDevices.getKNXDevice(HumiditySensor.class, Haus.Kueche);
+        var humidity = this.knxDevices.getKNXDevice(HumiditySensor.class, HausTester.Kueche);
         humidity.ifPresent(h -> {
             System.out.println("Luftfeuchtigkeit " + h.getCurrentHumidity() + "%");
         });
     }
 
     private void getVoc() {
-        var co2 = this.knxDevices.getKNXDevice(VOCSensor.class, Haus.Kueche);
+        var co2 = this.knxDevices.getKNXDevice(VOCSensor.class, HausTester.Kueche);
         co2.ifPresent(co -> {
             System.out.println("Co2: " + co.getCurrentPPM() + "ppm");
         });

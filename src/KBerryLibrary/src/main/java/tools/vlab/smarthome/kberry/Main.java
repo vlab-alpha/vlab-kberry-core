@@ -3,7 +3,6 @@ package tools.vlab.smarthome.kberry;
 import tools.vlab.smarthome.kberry.baos.*;
 import tools.vlab.smarthome.kberry.devices.KNXDevices;
 import tools.vlab.smarthome.kberry.devices.actor.Light;
-import tools.vlab.smarthome.kberry.devices.sensor.ElectricitySensor;
 import tools.vlab.smarthome.kberry.devices.sensor.HumiditySensor;
 import tools.vlab.smarthome.kberry.devices.sensor.PresenceSensor;
 import tools.vlab.smarthome.kberry.devices.sensor.VOCSensor;
@@ -22,14 +21,14 @@ public class Main {
 
             KNXDevices devices = new KNXDevices(connection);
 
-            devices.register(PresenceSensor.at(Haus.Office));
+            devices.register(PresenceSensor.at(HausTester.Office));
 //            devices.register(PresenceSensor.at(Haus.Office));
-            devices.register(Light.at(Haus.Office));
-            devices.register(PresenceSensor.at(Haus.KinderzimmerGelbDecke));
+            devices.register(Light.at(HausTester.Office));
+            devices.register(PresenceSensor.at(HausTester.KinderzimmerGelbDecke));
 //            devices.register(Light.at(Haus.KinderzimmerBlau));
 //            devices.register(Light.at(Haus.KinderzimmerGelbDecke));
-            devices.register(VOCSensor.at(Haus.Kueche));
-            devices.register(HumiditySensor.at(Haus.Kueche));
+            devices.register(VOCSensor.at(HausTester.Kueche));
+            devices.register(HumiditySensor.at(HausTester.Kueche));
 //            devices.register(ElectricitySensor.at(Haus.KinderzimmerGelbSteckdose));
 
             devices.exportCSV(Path.of("weinzierl_export.csv"));

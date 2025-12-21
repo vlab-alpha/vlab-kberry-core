@@ -2,7 +2,8 @@ package tools.vlab.smarthome.kberry.baos;
 
 import lombok.Setter;
 import lombok.SneakyThrows;
-import tools.vlab.smarthome.kberry.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.ReloadDevice;
 import tools.vlab.smarthome.kberry.SerialPort;
 import tools.vlab.smarthome.kberry.baos.messages.FT12Frame;
@@ -16,6 +17,8 @@ import java.util.function.Consumer;
 
 
 public class SerialBAOSConnection {
+
+    private static final Logger Log = LoggerFactory.getLogger(SerialBAOSConnection.class);
 
     private final SerialPort port;
     private final int timeout;
@@ -85,7 +88,6 @@ public class SerialBAOSConnection {
             while (running) {
                 var indicator = reader.nextIndicator();
                 if (indicator.isPresent()) {
-//                    Log.debug("IND: %d  %s", indicator.get().getId(), indicator.get().toHex());
                     switch (indicator.get().getIndicator()) {
                         case SERVER_ITEM_IND -> GetServerItem.Indicator
                                 .frameData(indicator.get())
@@ -109,7 +111,7 @@ public class SerialBAOSConnection {
                 Thread.sleep(10);
             }
         } catch (InterruptedException e) {
-            Log.error(e, "Interrupted");
+            Log.error("Interrupted", e);
         }
 
     }
@@ -195,7 +197,7 @@ public class SerialBAOSConnection {
                 Log.error("No Success response for get all status status [ServerItemId.All]");
                 return new ArrayList<>();
             } catch (Exception e) {
-                Log.error(e, "Get All Status Error");
+                Log.error("Get All Status Error", e);
                 return new ArrayList<>();
             }
         }
@@ -245,13 +247,12 @@ public class SerialBAOSConnection {
 
     private void updateCacheViaBus(DataPointId id) throws TimeoutException, BAOSReadException {
         var request = SetDatapointValue.Request.updateCache(id);
-        Log.info("Update object server cache via bus for id %s!", id.id());
         var future = reader.responseOf(request, timeout);
         writer.sendDataFrame(request);
         var setDataPointFrame = future.waitForResult();
         writer.sendAck();
         var setDP = SetDatapointValue.Response.frameData(setDataPointFrame);
-        Log.info("Receive setDataPointFrame response!! ID:%s Fail:%s Hex:%s", id.id(), setDP.isFailed(), setDataPointFrame.toHex());
+        Log.info("Update Cache [ID:%s Fail:%s Hex:%s]", id.id(), setDP.isFailed(), setDataPointFrame.toHex());
         if (setDP.isFailed()) {
             throw new BAOSReadException("Update cache failed [ERROR:" + setDP.error().getDescription() + "]");
         }

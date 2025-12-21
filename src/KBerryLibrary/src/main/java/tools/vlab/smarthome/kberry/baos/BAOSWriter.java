@@ -1,6 +1,7 @@
 package tools.vlab.smarthome.kberry.baos;
 
-import tools.vlab.smarthome.kberry.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.SerialPort;
 import tools.vlab.smarthome.kberry.baos.messages.FT12Frame;
 import tools.vlab.smarthome.kberry.baos.messages.os.DataFramePayload;
@@ -9,6 +10,8 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class BAOSWriter implements AckWriter {
+
+    private static final Logger Log = LoggerFactory.getLogger(BAOSWriter.class);
 
     private final SerialPort serialPort;
     private volatile boolean running = false;
@@ -35,7 +38,7 @@ public class BAOSWriter implements AckWriter {
         var data = FT12Frame.Data.request(request, odd);
         frames.addLast(data.toByteArray());
         Log.debug(
-                "Add To Stack: %s seq=%d %s",
+                "Add To Stack: {} seq={} {}",
                 odd ? "ODD" : "EVENT",
                 sequence.get(),
                 data.toHex()
@@ -51,7 +54,7 @@ public class BAOSWriter implements AckWriter {
         var reset = FT12Frame.Reset.request();
         frames.addLast(reset.toByteArray());
         Log.debug(
-                "RES: %s seq=%d %s",
+                "RES: {} seq={} {}",
                 isOdd() ? "ODD" : "EVENT",
                 sequence.get(),
                 reset.toHex()

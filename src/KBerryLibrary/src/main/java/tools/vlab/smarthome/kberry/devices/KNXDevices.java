@@ -1,6 +1,7 @@
 package tools.vlab.smarthome.kberry.devices;
 
-import tools.vlab.smarthome.kberry.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.PositionPath;
 import tools.vlab.smarthome.kberry.ReloadDevice;
 import tools.vlab.smarthome.kberry.baos.*;
@@ -17,6 +18,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class KNXDevices implements ReloadDevice {
+
+    private static final Logger Log = LoggerFactory.getLogger(KNXDevices.class);
 
     private final Vector<KNXDevice> devices = new Vector<>();
     private final AtomicInteger counter = new AtomicInteger(1);
@@ -119,7 +122,8 @@ public class KNXDevices implements ReloadDevice {
             try {
                 device.load();
             } catch (BAOSReadException e) {
-                Log.error(e, "Failed to load device %s", device.getClass().getSimpleName());
+                Log.error("Failed to load device {}", device.getClass().getSimpleName());
+                Log.error("Failed to load device", e);
             }
         });
     }

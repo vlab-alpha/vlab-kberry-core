@@ -1,6 +1,7 @@
 package tools.vlab.smarthome.kberry.baos.messages.os;
 
-import tools.vlab.smarthome.kberry.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.baos.ByteUtil;
 import tools.vlab.smarthome.kberry.devices.RGB;
 
@@ -9,6 +10,8 @@ import java.util.List;
 import java.util.Optional;
 
 public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.State> states) {
+
+    private static final Logger Log = LoggerFactory.getLogger(DataPoint.class);
 
     public static DataPoint uInt8(DataPointId id, int value) {
         return new DataPoint(id, ByteUtil.uInt8(value), new ArrayList<>());
@@ -91,7 +94,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.uInt16(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype uInt16 SIZE:%d", payload.length);
+            Log.error("Invalid datatype uInt16 [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
             return Optional.empty();
         }
     }
@@ -100,7 +103,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.uInt8(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype uInt8 SIZE:%d", payload.length);
+            Log.error("Invalid datatype uIn8 [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
             return Optional.empty();
         }
     }
@@ -109,7 +112,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.toFloat32(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype float SIZE:%d", payload.length);
+            Log.error("Invalid datatype float32 [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
             return Optional.empty();
         }
     }
@@ -118,7 +121,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.toFloat9(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype float ID:%s SIZE:%d HEX:%s", id().id(), payload.length, ByteUtil.toHex(payload));
+            Log.error("Invalid datatype float [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
             return Optional.empty();
         }
     }
@@ -127,7 +130,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.rgb(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype RGB SIZE:%d", payload.length);
+            Log.error("Invalid datatype RGB [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
         }
         return Optional.empty();
     }
@@ -136,7 +139,7 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
         try {
             return Optional.of(ByteUtil.bool(payload));
         } catch (Exception e) {
-            Log.error("Invalid datatype Bool SIZE:%d", payload.length);
+            Log.error("Invalid datatype Bool [Id:{}; Length:{}; Hex:{}]", id().id(), payload.length, ByteUtil.toHex(payload));
         }
         return Optional.empty();
     }

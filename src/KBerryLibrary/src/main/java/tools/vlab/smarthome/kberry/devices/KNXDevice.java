@@ -1,7 +1,8 @@
 package tools.vlab.smarthome.kberry.devices;
 
 import lombok.Getter;
-import tools.vlab.smarthome.kberry.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.PositionPath;
 import tools.vlab.smarthome.kberry.baos.*;
 import tools.vlab.smarthome.kberry.baos.messages.os.DataPoint;
@@ -13,6 +14,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class KNXDevice {
+
+    private static final Logger Log = LoggerFactory.getLogger(KNXDevice.class);
 
     private Thread updateThread;
     private volatile boolean running = false;
@@ -104,11 +107,11 @@ public abstract class KNXDevice {
 
     public Optional<DataPoint> get(Command command) throws BAOSReadException {
         var bao = BAOMap.get(command);
-        Log.debug("Get command %s with id %s", command.name(), bao.dataPointId().id());
+        Log.debug("Get command {} with id {}", command.name(), bao.dataPointId().id());
         try {
             return Optional.of(this.connection.read(bao.dataPointId()));
         } catch (Exception e) {
-            Log.error(e, "Failed to write data point!");
+            Log.error("Failed to write data point!", e);
             return Optional.empty();
         }
     }
@@ -142,7 +145,7 @@ public abstract class KNXDevice {
                     load();
                     Thread.sleep(refreshIntervallMs);
                 } catch (InterruptedException | BAOSReadException e) {
-                    Log.error(e, "Failed to refresh data point!");
+                    Log.error("Failed to refresh data point!", e);
                 }
             }
         }, "Update DataPoint of " + positionPath.getPath());
@@ -155,7 +158,7 @@ public abstract class KNXDevice {
         try {
             this.connection.write(dataPoint);
         } catch (Exception e) {
-            Log.error(e, "Failed to write data point!");
+            Log.error("Failed to write data point!", e);
         }
     }
 

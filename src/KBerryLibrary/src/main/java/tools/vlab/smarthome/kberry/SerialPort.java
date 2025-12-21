@@ -1,5 +1,7 @@
 package tools.vlab.smarthome.kberry;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.baos.ByteUtil;
 
 import java.io.ByteArrayOutputStream;
@@ -10,6 +12,8 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class SerialPort {
+
+    private static final Logger Log = LoggerFactory.getLogger(SerialPort.class);
 
     private final String device;
     private final int baudRate;
@@ -91,7 +95,7 @@ public class SerialPort {
     public synchronized void writeBytes(byte[] data) {
         if (out == null) return;
         try {
-            Log.debug("Write Data: %s", ByteUtil.toHex(data));
+            Log.debug("Write Data: {}", ByteUtil.toHex(data));
             out.write(data);
             out.flush();
         } catch (IOException e) {

@@ -1,21 +1,21 @@
 package tools.vlab.smarthome.kberry.baos;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.smarthome.kberry.SerialPort;
 import tools.vlab.smarthome.kberry.SerialPortListener;
 import tools.vlab.smarthome.kberry.baos.messages.FT12Frame;
-import tools.vlab.smarthome.kberry.Log;
 import tools.vlab.smarthome.kberry.baos.messages.os.DataFramePayload;
 
-import java.io.InputStream;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class BAOSReader implements SerialPortListener {
 
+    private static final Logger Log = LoggerFactory.getLogger(BAOSReader.class);
+
     private final SerialPort port;
-    private volatile boolean running = false;
-//    private InputStream in;
     private final FT12StreamParser parser = new FT12StreamParser();
 
     private final AtomicLong ackTS = new AtomicLong(0);
@@ -29,12 +29,10 @@ public class BAOSReader implements SerialPortListener {
     }
 
     public void start() {
-        running = true;
         port.addListener(this);
     }
 
     public void stop() {
-        running = false;
     }
 
     public FT12Frame.Data nextResponse(DataFramePayload payload) throws BAOSReadException {
@@ -115,16 +113,16 @@ public class BAOSReader implements SerialPortListener {
                 ackWriter.ack();
                 FT12Frame.Data data = FT12Frame.Data.of(frame);
                 if (data.isIndicator()) {
-                    Log.debug("IND: ?: %s", data.toHex());
+                    Log.debug("IND: ?: {}", data.toHex());
                     indicatorFrames.add(data);
                 } else if (data.isResponse()) {
                     getFuture(data).complete(data);
                 } else {
-                    Log.error("No Datapoint or server Item: %s", data.toHex());
+                    Log.error("No Datapoint or server Item: {}", data.toHex());
                 }
                 continue;
             }
-            Log.error("Unknown frame: %s", ByteUtil.toHex(frame));
+            Log.error("Unknown frame: {}", ByteUtil.toHex(frame));
         }
     }
 

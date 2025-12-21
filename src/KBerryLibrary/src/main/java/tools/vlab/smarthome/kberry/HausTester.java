@@ -1,6 +1,6 @@
 package tools.vlab.smarthome.kberry;
 
-public enum Haus implements PositionPath {
+public enum HausTester implements PositionPath {
     KinderzimmerGelbDecke("Haus", "1OG", "Kinderzimmer Gelb", "Decke"),
     KinderzimmerGelbSteckdose("Haus", "1OG", "Kinderzimmer Gelb", "Steckdose"),
     KinderzimmerBlau("Haus", "1OG", "Kinderzimmer Blau", "Decke"),
@@ -13,7 +13,7 @@ public enum Haus implements PositionPath {
     private final String room;
     private final String roomPosition;
 
-    Haus(String position, String floor, String room, String roomPosition) {
+    HausTester(String position, String floor, String room, String roomPosition) {
         this.position = position;
         this.floor = floor;
         this.room = room;

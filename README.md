@@ -9,6 +9,8 @@ The library is designed for developers who want **full control** over KNX commun
 
 ## Motivation
 
+One of the main reasons for developing this library was the lack of a suitable solution in existing tools.
+Calimero did not provide a reliable or fast mechanism to receive immediate updates when values change, and Weinzierl officially offers libraries only for C# and C++.
 KNX BAOS devices behave differently from typical request/response protocols:
 
 - Responses can be **delayed**
@@ -42,14 +44,14 @@ Kberry Core was built to handle these realities **correctly and deterministicall
 ┌──────────────┐
 │ Application  │
 └──────┬───────┘
-│
+       │
 ┌──────▼────────┐
 │ SerialBAOS    │  High-level API
 │ Connection    │
 └──────┬────────┘
-│
+       │
 ┌──────▼────────┐      ┌──────────────┐
-│ BAOSWriter    │ —> │ Serial Port  │
+│ BAOSWriter    │ —>   │ Serial Port  │
 │ (FT1.2)       │      └──────────────┘
 └───────────────┘
 ┌───────────────┐
@@ -107,21 +109,57 @@ Responsible for:
 ### Connect
 
 ```java
-SerialBAOSConnection conn =
-    new SerialBAOSConnection("/dev/ttyUSB0", 1000, 3);
+// Serial Interface; Timeout; Retry
+SerialBAOSConnection connection = new SerialBAOSConnection("/dev/ttyAMA0", 1000, 10);
+KNXDevices devices = new KNXDevices(connection);
+// House is a enum who implemented the interface PositionPath 
+devices.register(PresenceSensor.at(House.OfficeTop)); 
+devices.register(Light.at(House.KitchenWall));
+// ... register all devices with the specified Position
 
-conn.connect();
+// The export is necessary for the CSV-based import process of the Weinzierl BAOS Importer.
+// [https://weinzierl.de/images/download/products/dca/baoscsvimporter/weinzierl_dca_baos_csv_importer_manual_de.pdf]
+devices.exportCSV(Path.of("weinzierl_export.csv"));
 
-### Response
-DataPoint value = conn.read(new DataPointId(10));
+connection.connect();
+connection.disconnect();
 
-### Request
-conn.write(DataPoint.bool(new DataPointId(4), true));
+```
 
-### Indicator
-conn.onValueChanged(new DataPointId(10), dp -> {
-    System.out.println("New value: " + dp);
+### Get Devices
+All registered devices can be accessed through the Devices section, where they can also be searched. 
+```java
+// Get all Humidity Sensors
+var myListOfDevices = devices.getKNXDevices(HumiditySensor.class);
+// Get device from position Path
+var myOptionalDevice = devices.getKNXDevice(PresenceSensor.class, House.OfficeTop);
+// Get all push in the room
+var myPushDeviceFromKitchen = devices.getKNXDevicesByRoom(Push.class, "kitchen");
+```
+
+### Device
+Each device provides individual functions. For example, a light can be switched on and off, while a floor heating system allows setting the operating mode and target temperature.
+In addition, each device has its own observer mechanism, allowing interested parties to subscribe and receive updates whenever a value changes, such as temperature or presence.
+```java
+devices.getKNXDevice(PresenceSensor.class, House.Office).get().addListener((sensor, available) -> {
+    var isAvailable = available;
+    var timeInSecond = sensor.getLastPresentSecond();
+    System.out.println("Somone "+(!isAvailable?"was":"")+" in the room for"+(timeInSecond)+" second ago!");
 });
+devices.getKNXDevice(Light.class, HausTester.Office).get().on();
+```
+
+## Device
+### Fast Updates & Indicators
+When a value changes (for example, a presence sensor), the update is received and processed within approximately 300 ms.
+Indicator messages always have priority, including over regular Object Server responses.
+This ensures that state changes are propagated immediately and are not delayed by polling or request/response cycles.
+
+### Local Caching & Persistence
+All values are buffered in the application’s memory.
+When a value is requested, it is always served directly from the application RAM, ensuring fast and deterministic access.
+
+In addition, all values are persisted to disk.
 
 
 

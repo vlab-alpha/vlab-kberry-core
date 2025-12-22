@@ -143,7 +143,8 @@ In addition, each device has its own observer mechanism, allowing interested par
 ```java
 devices.getKNXDevice(PresenceSensor.class, House.Office).get().addListener((sensor, available) -> {
     var isAvailable = available;
-    var timeMS = sensor.getLastPresentSecond();
+    var timeInSecond = sensor.getLastPresentSecond();
+    System.out.println("Somone "+(!isAvailable?"was":"")+" in the room for"+(timeInSecond)+" second ago!");
 });
 devices.getKNXDevice(Light.class, HausTester.Office).get().on();
 ```

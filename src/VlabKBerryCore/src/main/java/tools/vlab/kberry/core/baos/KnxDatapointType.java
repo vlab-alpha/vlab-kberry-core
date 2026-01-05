@@ -24,14 +24,14 @@ public enum KnxDatapointType {
     SINT32(13),     // DPT 13.xxx (Signed 32-bit)
     FLOAT32(14),    // DPT 14.xxx (Standard IEEE 754 4-byte float)
     STRING_14(16),  // DPT 16.001 (14-Byte String)
-    DATETIME(19),   // DPT 19.001 (8-Byte Datum/Zeit)
+    DATETIME(11),   // DPT 19.001 (8-Byte Datum/Zeit)
 
     // Die folgenden 1-Byte-Enums teilen sich in BAOS die Property ID 20
-    SCENE_NUMBER(20),// DPT 17.001 (Szenennummer)
+    SCENE_NUMBER(18),// DPT 17.001 (Szenennummer)
     KNX_ACCESS(20),  // DPT 18.001 (Zugriffskontrolle)
-    HVAC_MODE(20),   // DPT 20.102 (Heizung/Klima Modus)
+    HVAC_MODE(4),   // DPT 20.102 (1 Byte Heizung/Klima Modus)
 
-    RGB(28);         // DPT 232.600 (3-byte RGB)
+    RGB(10);         // DPT 232.600 (3-byte RGB)
 
 
     // Der Start-Offset für die Nutzlast (Wert) im cEMI/BAOS Frame

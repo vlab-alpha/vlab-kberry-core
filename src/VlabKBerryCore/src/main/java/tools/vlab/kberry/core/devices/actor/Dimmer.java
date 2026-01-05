@@ -7,7 +7,6 @@ import tools.vlab.kberry.core.devices.Command;
 import tools.vlab.kberry.core.devices.KNXDevice;
 import tools.vlab.kberry.core.devices.PersistentValue;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,9 +19,9 @@ public class Dimmer extends KNXDevice {
         super(positionPath,
                 refreshData,
                 Command.ON_OFF_SWITCH,
-                Command.SET_BRIGHTNESS, // Angenommen, Sie haben diesen Befehl hinzugefügt (oder nutzen DIMMEN direkt)
-                Command.ON_OFF_STATUS, // Für Rückmeldungen,
-                Command.BRIGHTNESS_STATUS
+                Command.SET_BRIGHTNESS_ABS,
+                Command.ON_OFF_STATUS,
+                Command.BRIGHTNESS_STATUS_ABS
         );
         this.currentBrightness = new PersistentValue<>(positionPath, "currentBrightness", 0, Integer.class);
         this.currentStatus = new PersistentValue<>(positionPath, "currentStatus", false, Boolean.class);
@@ -49,7 +48,7 @@ public class Dimmer extends KNXDevice {
     }
 
     public void setBrightness(int percent) {
-        this.set(Command.SET_BRIGHTNESS, percent);
+        this.set(Command.SET_BRIGHTNESS_ABS, percent);
     }
 
     @Override
@@ -60,7 +59,7 @@ public class Dimmer extends KNXDevice {
                 getListener().forEach(status -> status.isOnChanged(this, value));
 
             });
-            case BRIGHTNESS_STATUS -> dataPoint.getUInt8().ifPresent(value -> {
+            case BRIGHTNESS_STATUS_ABS -> dataPoint.getUInt8().ifPresent(value -> {
                 currentBrightness.set(value);
                 getListener().forEach(status -> status.brightnessChanged(this, value));
             });
@@ -75,7 +74,7 @@ public class Dimmer extends KNXDevice {
     @Override
     public void load() throws BAOSReadException {
         this.get(Command.ON_OFF_STATUS).flatMap(DataPoint::getBoolean).ifPresent(currentStatus::set);
-        this.get(Command.BRIGHTNESS_STATUS).flatMap(DataPoint::getUInt8).ifPresent(currentBrightness::set);
+        this.get(Command.BRIGHTNESS_STATUS_ABS).flatMap(DataPoint::getUInt8).ifPresent(currentBrightness::set);
     }
 
 }

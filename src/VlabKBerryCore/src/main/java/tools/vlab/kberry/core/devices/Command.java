@@ -15,8 +15,8 @@ public enum Command {
     WINDOW_CONTACT_STATUS(Communication.READ, KnxDatapointType.BOOLEAN),
     COMFORT_MODE_ACTIVE_STATUS(Communication.READ, KnxDatapointType.BOOLEAN),
     FROST_PROTECTION_ACTIVE_STATUS(Communication.READ, KnxDatapointType.BOOLEAN),
-    SET_BRIGHTNESS(Communication.WRITE, KnxDatapointType.INT8),
-    BRIGHTNESS_STATUS(Communication.READ, KnxDatapointType.INT8),
+    SET_BRIGHTNESS_ABS(Communication.WRITE, KnxDatapointType.UINT8),
+    BRIGHTNESS_STATUS_ABS(Communication.READ, KnxDatapointType.UINT8),
     ENABLE(Communication.WRITE, KnxDatapointType.BOOLEAN),
     ENABLE_STATUS(Communication.READ, KnxDatapointType.BOOLEAN),
 

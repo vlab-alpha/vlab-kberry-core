@@ -46,7 +46,7 @@ public enum Command {
     HVAC_SETPOINT_TEMPERATURE_ACTUAL(Communication.READ, KnxDatapointType.FLOAT9),
     HVAC_OPERATING_MODE_SET(Communication.WRITE, KnxDatapointType.HVAC_MODE),
     HVAC_OPERATING_MODE_ACTUAL(Communication.READ, KnxDatapointType.HVAC_MODE),
-    HVAC_ACTUATOR_POSITION_ACTUAL(Communication.READ, KnxDatapointType.FLOAT9),
+    HVAC_ACTUATOR_POSITION_ACTUAL(Communication.READ, KnxDatapointType.UINT8),
 
     // RGB
     RGB_COLOR_CONTROL(Communication.WRITE, KnxDatapointType.RGB),

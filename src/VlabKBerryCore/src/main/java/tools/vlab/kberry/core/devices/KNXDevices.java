@@ -170,6 +170,7 @@ public class KNXDevices implements ReloadDevice {
     public <T extends KNXDevice> List<T> getKNXDevicesByRoom(Class<T> clazz, String room) {
         return this.devices.stream()
                 .filter(d -> d.getPositionPath().getRoom().equalsIgnoreCase(room))
+                .filter(clazz::isInstance)
                 .map(clazz::cast)
                 .collect(Collectors.toList());
     }
@@ -177,6 +178,7 @@ public class KNXDevices implements ReloadDevice {
     public <T extends KNXDevice> Optional<T> getKNXDeviceByRoom(Class<T> clazz, PositionPath path) {
         return this.devices.stream()
                 .filter(d -> d.getPositionPath().sameRoom(path))
+                .filter(clazz::isInstance)
                 .map(clazz::cast)
                 .findFirst();
     }

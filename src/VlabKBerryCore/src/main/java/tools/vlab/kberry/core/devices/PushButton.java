@@ -20,9 +20,6 @@ public class PushButton extends KNXDevice {
         return new PushButton(positionPath, null);
     }
 
-    public void addListener(PushButtonStatus listener) {
-        this.listener.add(listener);
-    }
 
     public void enable() {
         this.set(Command.ENABLE, true);

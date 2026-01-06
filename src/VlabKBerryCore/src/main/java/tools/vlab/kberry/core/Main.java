@@ -3,6 +3,7 @@ package tools.vlab.kberry.core;
 import tools.vlab.kberry.core.baos.SerialBAOSConnection;
 import tools.vlab.kberry.core.baos.TimeoutException;
 import tools.vlab.kberry.core.devices.KNXDevices;
+import tools.vlab.kberry.core.devices.PushButton;
 import tools.vlab.kberry.core.devices.actor.Light;
 import tools.vlab.kberry.core.devices.sensor.HumiditySensor;
 import tools.vlab.kberry.core.devices.sensor.PresenceSensor;
@@ -18,31 +19,36 @@ public class Main {
     public static void main(String[] args) throws IOException {
         SerialBAOSConnection connection = null;
         try {
-            connection = new SerialBAOSConnection("/dev/ttyAMA0", 1000, 10);
+            connection = new SerialBAOSConnection("/dev/ttyAMA0", 5000, 10);
 
             KNXDevices devices = new KNXDevices(connection);
+// Push Taster
+            devices.register(PushButton.at(Haus.KidsRoomYellowWall));
+            devices.register(PushButton.at(Haus.KidsRoomBlueWall));
+            devices.register(Light.at(Haus.BathTop));
+            devices.register(Light.at(Haus.BathWall));
+            devices.register(Light.at(Haus.KidsRoomBlueTop));
+            devices.register(Light.at(Haus.KidsRoomYellowTop));
+            devices.register(Light.at(Haus.OfficeTop));
+            devices.register(Light.at(Haus.SleepingRoomTop));
+            devices.register(Light.at(Haus.UpperHallwayTop));
+            devices.register(Light.at(Haus.HallwayTop));
+            devices.register(Light.at(Haus.GuestWC_Top));
+            devices.register(Light.at(Haus.ChangingRoomTop));
+            devices.register(Light.at(Haus.DiningRoomTop));
+            devices.register(Light.at(Haus.LivingRoomTop));
+            devices.register(Light.at(Haus.KitchenTop));
 
-            devices.register(PresenceSensor.at(HausTester.Office));
-//            devices.register(PresenceSensor.at(Haus.Office));
-            devices.register(Light.at(HausTester.Office));
-            devices.register(PresenceSensor.at(HausTester.KinderzimmerGelbDecke));
-//            devices.register(Light.at(Haus.KinderzimmerBlau));
-//            devices.register(Light.at(Haus.KinderzimmerGelbDecke));
-            devices.register(VOCSensor.at(HausTester.Kueche));
-            devices.register(HumiditySensor.at(HausTester.Kueche));
-//            devices.register(ElectricitySensor.at(Haus.KinderzimmerGelbSteckdose));
 
             devices.exportCSV(Path.of("weinzierl_export.csv"));
 
             checker = new Checker(devices);
-
-            System.out.println("Add Listener Check");
-            devices.getKNXDevices(PresenceSensor.class).forEach(device -> device.addListener(checker));
             devices.getKNXDevices(Light.class).forEach(device -> device.addListener(checker));
-            devices.getKNXDevices(VOCSensor.class).forEach(device -> device.addListener(checker));
-//            devices.getKNXDevices(ElectricitySensor.class).forEach(device -> device.addListener(checker));
-            devices.getKNXDevices(HumiditySensor.class).forEach(device -> device.addListener(checker));
-            devices.getKNXDevice(Light.class, HausTester.Office).get().on();
+            devices.getKNXDevices(PushButton.class).forEach(device -> device.addListener(checker));
+            //devices.getKNXDevice(Light.class,Haus.GuestWC_Top).ifPresent(device -> device.addListener(checker));
+            //devices.getKNXDevice(Light.class,Haus.SleepingRoomTop).ifPresent(device -> device.addListener(checker));
+            System.out.println("Add Listener Check");
+
             System.out.println("Starte Listener Check");
             connection.connect();
             checker.start();

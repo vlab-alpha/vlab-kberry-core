@@ -1,6 +1,7 @@
 package tools.vlab.kberry.core;
 
 import tools.vlab.kberry.core.devices.KNXDevices;
+import tools.vlab.kberry.core.devices.PushButtonStatus;
 import tools.vlab.kberry.core.devices.actor.Light;
 import tools.vlab.kberry.core.devices.actor.OnOffDevice;
 import tools.vlab.kberry.core.devices.actor.OnOffStatus;
@@ -8,7 +9,8 @@ import tools.vlab.kberry.core.devices.sensor.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, ElectricStatus,HumidityStatus {
+public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, ElectricStatus, HumidityStatus, PushButtonStatus {
+
 
     private final KNXDevices knxDevices;
     final AtomicBoolean switchOff = new AtomicBoolean(false);
@@ -33,8 +35,8 @@ public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, Electric
                 while (true) {
                     Thread.sleep(2000);
                     // schalteLichtAnAus(); // Funktioniert
-                    this.getLuftfeuchtigkeit();
-                    this.getVoc();
+//                    this.getLuftfeuchtigkeit();
+//                    this.getVoc();
 
                     Thread.sleep(5000);
                 }
@@ -96,5 +98,10 @@ public class Checker implements PresenceStatus, OnOffStatus, VOCStatus, Electric
     @Override
     public void humidityChanged(HumiditySensor sensor, float humidity) {
         System.out.println("Luftfeuchtigkeit " + sensor.getPositionPath().getPath() + " : " + humidity + "l");
+    }
+
+    @Override
+    public void enableChanged(PositionPath positionPath, boolean enable) {
+        System.out.println("Push Button status " + positionPath.getPath() + " : " + enable);
     }
 }

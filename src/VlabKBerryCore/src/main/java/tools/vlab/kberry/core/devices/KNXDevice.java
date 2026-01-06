@@ -112,7 +112,7 @@ public abstract class KNXDevice {
         try {
             return Optional.of(this.connection.read(bao.dataPointId()));
         } catch (Exception e) {
-            Log.error("Failed to write data point!", e);
+            Log.debug("Failed to write data point!", e);
             return Optional.empty();
         }
     }

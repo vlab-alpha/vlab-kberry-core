@@ -241,7 +241,7 @@ public class SerialBAOSConnection {
             }
             if (inProgress) reset(id);
         }
-        Log.debug("FAILED: Cache:%s; Success:%s; progress:%s", response.foundInOSCache(), response.isSuccess(), response.anyProgress());
+        Log.debug("FAILED: Cache:{}; Success:{}; progress:{}", response.foundInOSCache(), response.isSuccess(), response.anyProgress());
         return Optional.empty();
     }
 
@@ -252,7 +252,7 @@ public class SerialBAOSConnection {
         var setDataPointFrame = future.waitForResult();
         writer.sendAck();
         var setDP = SetDatapointValue.Response.frameData(setDataPointFrame);
-        Log.info("Update Cache [ID:%s Fail:%s Hex:%s]", id.id(), setDP.isFailed(), setDataPointFrame.toHex());
+        Log.info("Update Cache [ID:{} Fail:{} Hex:{}]", id.id(), setDP.isFailed(), setDataPointFrame.toHex());
         if (setDP.isFailed()) {
             throw new BAOSReadException("Update cache failed [ERROR:" + setDP.error().getDescription() + "]");
         }

@@ -10,8 +10,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <lombok.version>1.18.42</lombok.version>
         <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
         <maven.shade.plugin.version>3.5.0</maven.shade.plugin.version>
@@ -30,10 +30,12 @@
             <version>5.10.2</version>
             <scope>test</scope>
         </dependency>
+
+
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.16</version> <!-- Aktuelle 2025 Version -->
+            <artifactId>slf4j-simple</artifactId>
+            <version>2.0.9</version>
         </dependency>
 
     </dependencies>

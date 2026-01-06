@@ -23,7 +23,7 @@ public enum Command {
     // --- Jalousie / Beschattung (DPT 5: UINT8) ---
     // Der Typ SINT8 aus dem vorherigen Code war DPT 6.xxx.
     // Wir nutzen hier den spezifischeren DPT 5.001 (Prozent).
-    SHUTTER_UP_DOWN_CONTROL(Communication.WRITE, KnxDatapointType.UINT8), // DPT 5 (Position 0-100%)
+    SHUTTER_UP_DOWN_CONTROL(Communication.WRITE, KnxDatapointType.BOOLEAN), // DPT 5 (Position 0-100%)
     SHUTTER_POSITION_SET(Communication.WRITE, KnxDatapointType.UINT8),   // Positionsvorgabe 0-100%
     SHUTTER_POSITION_ACTUAL_STATUS(Communication.READ, KnxDatapointType.UINT8), // Ist-Position 0-100%
 

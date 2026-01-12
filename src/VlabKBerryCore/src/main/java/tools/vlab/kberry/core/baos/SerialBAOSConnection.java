@@ -15,7 +15,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-
+// FIXME: ein Flag, ob ein Refrehs Anforderung an BAOS erfolgen soll wenn der app cache nicht geladen wurde oder besser,
+//  wenn die Daten nicht alt sind im cache dann soll kein Refresh getriggert werden!!
 public class SerialBAOSConnection {
 
     private static final Logger Log = LoggerFactory.getLogger(SerialBAOSConnection.class);

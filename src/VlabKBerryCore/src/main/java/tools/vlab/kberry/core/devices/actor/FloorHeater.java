@@ -55,8 +55,12 @@ public class FloorHeater extends KNXDevice {
         return HeaterMode.valueOf(currentMode.get());
     }
 
-    public int getCurrentActuatorPosition() {
+    public int getActuatorPosition() {
         return this.currentPosition.get();
+    }
+
+    public int getActuatorPositionPercent() {
+        return Math.round(this.currentPosition.get() * 100f / 255f);
     }
 
     @Override

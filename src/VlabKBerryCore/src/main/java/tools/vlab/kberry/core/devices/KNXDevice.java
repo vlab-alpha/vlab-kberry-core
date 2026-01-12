@@ -156,10 +156,19 @@ public abstract class KNXDevice {
 
 
     public void write(DataPoint dataPoint) {
-        try {
-            this.connection.write(dataPoint);
-        } catch (Exception e) {
-            Log.error("Failed to write data point!", e);
+        for (int retry = 0; retry < 5; retry++) {
+            try {
+                this.connection.write(dataPoint);
+            } catch (BAOSWriteException e2) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new IllegalStateException(e);
+                }
+            } catch (Exception e) {
+                Log.error("Failed to write data point!", e);
+                break;
+            }
         }
     }
 

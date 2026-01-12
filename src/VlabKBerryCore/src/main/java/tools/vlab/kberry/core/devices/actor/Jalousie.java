@@ -8,10 +8,8 @@ import tools.vlab.kberry.core.devices.KNXDevice;
 import tools.vlab.kberry.core.devices.PersistentValue;
 
 import java.util.List;
-import java.util.Vector;
 import java.util.stream.Collectors;
 
-// FIXME: manchmal reagieren die Jalousien nicht, es soll noch ein timer prüfen, ob es sich geändert hat (wenn keien Exception geschmissen worden ist) und dann soll nochmal getriggert werden!!!
 public class Jalousie extends KNXDevice {
 
     private final PersistentValue<Integer> currentPosition;
@@ -53,6 +51,14 @@ public class Jalousie extends KNXDevice {
 
     public void setPosition(int position) {
         this.set(Command.SHUTTER_POSITION_SET, position);
+    }
+
+    public int getCurrentPositionPercent() {
+        return Math.round(this.currentPosition.get() * 100f / 255f);
+    }
+
+    public void setPositionPercent(int percent) {
+        this.set(Command.SHUTTER_POSITION_ACTUAL_STATUS, Math.round(percent * 255f / 100f));
     }
 
     @Override

@@ -1,5 +1,6 @@
 package tools.vlab.kberry.core.baos;
 
+import tools.vlab.kberry.core.devices.HeaterMode;
 import tools.vlab.kberry.core.devices.RGB;
 
 import java.nio.ByteBuffer;
@@ -101,6 +102,11 @@ public class ByteUtil {
         return new byte[]{(byte) (value & 0xFF)};
     }
 
+    public static byte[] mode(HeaterMode mode) {
+        // z. B. 0=Off, 1=Comfort, 2=Night, 3=Frostschutz
+        return new byte[]{(byte) (mode.getMode() & 0xFF)};
+    }
+
     public static byte[] int8(int value) {
         return new byte[]{(byte) value};
     }
@@ -138,7 +144,7 @@ public class ByteUtil {
         int exponent = 0;
         int mantissa = 0;
         for (exponent = 0; exponent < 16; exponent++) {
-            mantissa = Math.round(value / (float)(Math.pow(2, exponent) * 0.01f));
+            mantissa = Math.round(value / (float) (Math.pow(2, exponent) * 0.01f));
             if (mantissa <= 0x7FF) break; // 11 Bit
         }
 

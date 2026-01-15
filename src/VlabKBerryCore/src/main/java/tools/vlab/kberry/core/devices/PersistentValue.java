@@ -1,5 +1,7 @@
 package tools.vlab.kberry.core.devices;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import tools.vlab.kberry.core.PositionPath;
 
 import java.io.*;
@@ -9,6 +11,9 @@ import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class PersistentValue<T> {
+
+    private final static Logger Log = LoggerFactory.getLogger(PersistentValue.class);
+
     private final Path filePath;
     private final AtomicReference<T> internalValue;
     private final Class<T> type;
@@ -18,7 +23,10 @@ public class PersistentValue<T> {
         this.filePath = Paths.get("storage", positionPath.toId(name) + ".dat");
         this.internalValue = new AtomicReference<>(load(defaultValue));
 
-        try { Files.createDirectories(filePath.getParent()); } catch (IOException ignored) {}
+        try {
+            Files.createDirectories(filePath.getParent());
+        } catch (IOException ignored) {
+        }
     }
 
     private T load(T defaultValue) {
@@ -48,8 +56,9 @@ public class PersistentValue<T> {
                 dos.writeInt(rgb.b());
             }
             dos.flush();
+            Log.debug("Persisted value: {}", value);
         } catch (IOException e) {
-            System.err.println("Fehler beim Persistieren von " + filePath + ": " + e.getMessage());
+            Log.error("Could not save data to {}", filePath, e);
         }
     }
 
@@ -62,9 +71,8 @@ public class PersistentValue<T> {
         persist(newValue);
     }
 
-    // Speziell für AtomicLong-ähnliches Verhalten (Increment)
     public synchronized long incrementAndGet() {
-        if (type != Long.class && type != Integer.class) throw new UnsupportedOperationException("Nur für Long");
+        if (type != Long.class && type != Integer.class) throw new UnsupportedOperationException("Only For Long!");
         long next = (Long) internalValue.get() + 1;
         set(type.cast(next));
         return next;

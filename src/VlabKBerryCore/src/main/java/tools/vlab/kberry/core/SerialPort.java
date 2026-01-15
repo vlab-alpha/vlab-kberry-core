@@ -72,7 +72,7 @@ public class SerialPort {
                     } else if (packetBuffer.size() > 0) {
                         // Paket-Erkennung: Wenn 40ms keine neuen Bytes kommen,
                         // betrachten wir das Telegramm als vollständig.
-                        Thread.sleep(40);
+                        Thread.sleep(20);
                         if (in.available() == 0) {
                             byte[] fullPacket = packetBuffer.toByteArray();
                             for (SerialPortListener l : listeners) {

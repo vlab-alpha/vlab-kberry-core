@@ -9,6 +9,8 @@ import tools.vlab.kberry.core.baos.messages.os.DataPoint;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public abstract class KNXDevice {
 
@@ -27,6 +29,7 @@ public abstract class KNXDevice {
     private final Integer refreshIntervallMs;
     @Getter
     private final String id = UUID.randomUUID().toString();
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     protected KNXDevice(PositionPath positionPath, Integer refreshIntervallMs, Command... cmd) {
         this.positionPath = positionPath;
@@ -62,45 +65,71 @@ public abstract class KNXDevice {
     }
 
     protected void set(Command command, boolean value) {
+        set(command, value, false);
+    }
+
+    protected void set(Command command, boolean value, boolean priority) {
         this.validate(command);
         var bao = BAOMap.get(command);
         if (Objects.requireNonNull(bao.datapointType()) == KnxDatapointType.BOOLEAN) {
-            this.write(DataPoint.bool(bao.dataPointId(), value));
+            this.write(DataPoint.bool(bao.dataPointId(), value), priority);
+        } else {
+            throw new InvalidCommandException(String.format("Unknown command %s", command));
+        }
+    }
+
+    protected void set(Command command, HeaterMode mode) {
+        this.validate(command);
+        var bao = BAOMap.get(command);
+        if (Objects.requireNonNull(bao.datapointType()) == KnxDatapointType.HVAC_MODE) {
+            this.write(DataPoint.hvac(bao.dataPointId(), mode), false);
         } else {
             throw new InvalidCommandException(String.format("Unknown command %s", command));
         }
     }
 
     protected void set(Command command, int value) {
+        set(command, value, false);
+    }
+
+    protected void set(Command command, int value, boolean priority) {
         this.validate(command);
         var bao = BAOMap.get(command);
         switch (bao.datapointType()) {
-            case INT8 -> this.write(DataPoint.int8(bao.dataPointId(), value));
-            case SINT8 -> this.write(DataPoint.sInt8(bao.dataPointId(), value));
-            case SINT16 -> this.write(DataPoint.sint16(bao.dataPointId(), value));
-            case SINT32 -> this.write(DataPoint.sint32(bao.dataPointId(), value));
-            case UINT8 -> this.write(DataPoint.uInt8(bao.dataPointId(), value));
-            case UINT16 -> this.write(DataPoint.uInt16(bao.dataPointId(), value));
-            case UINT32 -> this.write(DataPoint.uint32(bao.dataPointId(), value));
+            case INT8 -> this.write(DataPoint.int8(bao.dataPointId(), value), priority);
+            case SINT8 -> this.write(DataPoint.sInt8(bao.dataPointId(), value), priority);
+            case SINT16 -> this.write(DataPoint.sint16(bao.dataPointId(), value), priority);
+            case SINT32 -> this.write(DataPoint.sint32(bao.dataPointId(), value), priority);
+            case UINT8 -> this.write(DataPoint.uInt8(bao.dataPointId(), value), priority);
+            case UINT16 -> this.write(DataPoint.uInt16(bao.dataPointId(), value), priority);
+            case UINT32 -> this.write(DataPoint.uint32(bao.dataPointId(), value), priority);
             default -> throw new InvalidCommandException(String.format("Unknown command %s", command));
         }
     }
 
     protected void set(Command command, float value) {
+        set(command, value, false);
+    }
+
+    protected void set(Command command, float value, boolean priority) {
         this.validate(command);
         var bao = BAOMap.get(command);
         switch (bao.datapointType()) {
-            case FLOAT9 -> this.write(DataPoint.float9(bao.dataPointId(), value));
-            case FLOAT32 -> this.write(DataPoint.float32(bao.dataPointId(), value));
+            case FLOAT9 -> this.write(DataPoint.float9(bao.dataPointId(), value), priority);
+            case FLOAT32 -> this.write(DataPoint.float32(bao.dataPointId(), value), priority);
             default -> throw new InvalidCommandException(String.format("Unknown command %s", command));
         }
     }
 
     protected void set(Command command, RGB value) {
+        set(command, value, false);
+    }
+
+    protected void set(Command command, RGB value, boolean priority) {
         this.validate(command);
         var bao = BAOMap.get(command);
         if (Objects.requireNonNull(bao.datapointType()) == KnxDatapointType.RGB) {
-            this.write(DataPoint.rgb(bao.dataPointId(), value));
+            this.write(DataPoint.rgb(bao.dataPointId(), value), priority);
         } else {
             throw new InvalidCommandException(String.format("Unknown command %s", command));
         }
@@ -127,6 +156,7 @@ public abstract class KNXDevice {
     }
 
     public void stop() {
+        executor.close();
         running = false;
         try {
             if (updateThread != null) {
@@ -155,20 +185,11 @@ public abstract class KNXDevice {
     }
 
 
-    public void write(DataPoint dataPoint) {
-        for (int retry = 0; retry < 5; retry++) {
-            try {
-                this.connection.write(dataPoint);
-            } catch (BAOSWriteException e2) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    throw new IllegalStateException(e);
-                }
-            } catch (Exception e) {
-                Log.error("Failed to write data point!", e);
-                break;
-            }
+    public void write(DataPoint dataPoint, boolean priority) {
+        try {
+            this.connection.write(dataPoint, priority);
+        } catch (Exception e) {
+            Log.error("Failed to write data point!", e);
         }
     }
 

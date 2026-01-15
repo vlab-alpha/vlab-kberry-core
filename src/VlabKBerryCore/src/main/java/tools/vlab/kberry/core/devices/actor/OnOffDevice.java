@@ -6,10 +6,8 @@ import tools.vlab.kberry.core.baos.messages.os.DataPoint;
 import tools.vlab.kberry.core.devices.Command;
 import tools.vlab.kberry.core.devices.KNXDevice;
 import tools.vlab.kberry.core.devices.PersistentValue;
-import tools.vlab.kberry.core.devices.sensor.ElectricStatus;
 
 import java.util.List;
-import java.util.Vector;
 import java.util.stream.Collectors;
 
 public class OnOffDevice extends KNXDevice {
@@ -19,12 +17,12 @@ public class OnOffDevice extends KNXDevice {
 
     protected OnOffDevice(PositionPath positionPath, Integer refreshData, String type) {
         super(positionPath, refreshData, Command.ON_OFF_SWITCH, Command.ON_OFF_STATUS);
-        this.currentValue = new PersistentValue<>(positionPath, type + "status", false, Boolean.class);
-        this.lastTrueMS = new PersistentValue<>(positionPath, "presence", 0L, Long.class);
+        this.currentValue = new PersistentValue<>(positionPath, type + "_status", false, Boolean.class);
+        this.lastTrueMS = new PersistentValue<>(positionPath, type + "_presence", 0L, Long.class);
     }
 
     public void on() {
-        this.set(Command.ON_OFF_SWITCH, true);
+        this.set(Command.ON_OFF_SWITCH, true, true);
     }
 
     public void off() {
@@ -44,10 +42,9 @@ public class OnOffDevice extends KNXDevice {
         switch (command) {
             case ON_OFF_STATUS, ON_OFF_SWITCH -> dataPoint.getBoolean().ifPresent(value -> {
                 boolean oldOrCurrentValue = this.currentValue.getAndSet(value);
-                long currentTime = System.currentTimeMillis();
                 if (oldOrCurrentValue != value) {
                     if (value) {
-                        lastTrueMS.set(currentTime);
+                        lastTrueMS.set(System.currentTimeMillis());
                     }
                     getListener().forEach(lightStatus -> lightStatus.onOffStatusChanged(this, value));
                 }

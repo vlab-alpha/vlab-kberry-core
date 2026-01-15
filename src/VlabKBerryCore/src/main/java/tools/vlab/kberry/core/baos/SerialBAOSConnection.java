@@ -12,7 +12,7 @@ import tools.vlab.kberry.core.baos.messages.os.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 // FIXME: ein Flag, ob ein Refrehs Anforderung an BAOS erfolgen soll wenn der app cache nicht geladen wurde oder besser,
@@ -25,6 +25,7 @@ public class SerialBAOSConnection {
     private final int timeout;
     private final ConcurrentHashMap<ServerItemId, Consumer<GetServerItem.Response.ServerItem>> statusListener = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<Integer, Consumer<DataPoint>> valueChangeListener = new ConcurrentHashMap<>();
+    private final LinkedBlockingDeque<DataPointPriority> dataPoints = new LinkedBlockingDeque<>(1000);
 
     private final BAOSWriter writer;
     private final BAOSReader reader;
@@ -33,6 +34,9 @@ public class SerialBAOSConnection {
     private final int retries;
     @Setter
     private ReloadDevice reloadDevice;
+    private final ExecutorService indicators = Executors.newSingleThreadExecutor();
+    private final ExecutorService requester = Executors.newSingleThreadExecutor();
+    private final ExecutorService listenerExecutor = Executors.newCachedThreadPool();
 
     public SerialBAOSConnection(String device, int timeout, int retries) {
         port = new SerialPort(device, 19200);
@@ -65,7 +69,26 @@ public class SerialBAOSConnection {
     }
 
     public void disconnect() {
+
         stopObserver();
+
+        indicators.shutdownNow();
+        requester.shutdownNow();
+        listenerExecutor.shutdownNow();
+        try {
+            if (indicators.awaitTermination(5, TimeUnit.SECONDS)) {
+                Log.info("Indicator Thread stopped ...");
+            }
+            if (requester.awaitTermination(5, TimeUnit.SECONDS)) {
+                Log.info("Requester Thread stopped ...");
+            }
+            if (listenerExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
+                Log.info("Listener Thread stopped ...");
+            }
+        } catch (InterruptedException e) {
+            Log.error("Stopp Threads (Requester & Indicator) failed! ", e);
+        }
+
         writer.stop();
         reader.stop();
         port.closePort();
@@ -75,9 +98,8 @@ public class SerialBAOSConnection {
     @SneakyThrows
     private void startObserver() {
         running = true;
-        Thread t = new Thread(this::indicatorLoop, "BAOS-Inidicator");
-        t.setDaemon(true);
-        t.start();
+        indicators.execute(this::indicatorLoop);
+        requester.execute(this::requestLoop);
     }
 
     private void stopObserver() {
@@ -86,7 +108,7 @@ public class SerialBAOSConnection {
 
     private void indicatorLoop() {
         try {
-            while (running) {
+            while (running && !Thread.currentThread().isInterrupted()) {
                 var indicator = reader.nextIndicator();
                 if (indicator.isPresent()) {
                     switch (indicator.get().getIndicator()) {
@@ -95,24 +117,25 @@ public class SerialBAOSConnection {
                                 .getItems()
                                 .forEach(serverItem -> Optional
                                         .ofNullable(statusListener.get(serverItem.id()))
-                                        .ifPresent(listener -> listener.accept(serverItem)));
+                                        .ifPresent(listener -> listenerExecutor.execute(() -> listener.accept(serverItem))));
                         case DP_VALUE_IND -> GetDatapointValue.Indicator
                                 .frameData(indicator.get())
                                 .getDataPoints()
                                 .forEach(dp -> {
                                     Optional
                                             .ofNullable(valueChangeListener.get(dp.id().id()))
-                                            .ifPresent(listener -> listener.accept(dp));
+                                            .ifPresent(listener -> listenerExecutor.execute(() -> listener.accept(dp)));
                                 });
                         case UNKNOWN -> {
-                            Log.error("Unknown indicator: " + indicator.get().toHex());
+                            Log.error("Unknown indicator: {}", indicator.get().toHex());
                         }
                     }
                 }
                 Thread.sleep(10);
             }
         } catch (InterruptedException e) {
-            Log.error("Interrupted", e);
+            Thread.currentThread().interrupt();
+            Log.info("Indicator loop stopped");
         }
 
     }
@@ -125,14 +148,48 @@ public class SerialBAOSConnection {
         statusListener.put(id, listener);
     }
 
-    public void write(DataPoint dataPoint) throws BAOSWriteException {
+    public void write(DataPoint dataPoint, boolean priority) {
+        var dp = priority
+                ? DataPointPriority.prio(dataPoint)
+                : DataPointPriority.normal(dataPoint);
+        try {
+            boolean success;
+            if (priority) {
+                success = dataPoints.offerFirst(dp, 1000, TimeUnit.MILLISECONDS);
+            } else {
+                success = dataPoints.offerLast(dp, 1000, TimeUnit.MILLISECONDS);
+            }
+            if (!success) {
+                Log.warn("BAOS queue full, dropping datapoint {}", dp);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.warn("Write interrupted, dropping datapoint {}", dp);
+        }
+    }
+
+    private void requestLoop() {
+        try {
+            while (running && !Thread.currentThread().isInterrupted()) {
+                var datapoint = dataPoints.takeFirst();
+                send(datapoint.dataPoint(), datapoint.priority());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            Log.info("Request loop stopped");
+        } catch (Exception e) {
+            Log.error("Failed to request data point!", e);
+        }
+    }
+
+    private void send(DataPoint dataPoint, boolean priority) throws BAOSWriteException {
         synchronized (writeLock) {
             try {
                 var request = SetDatapointValue.Request.setCacheAndBus(dataPoint);
                 var future = reader.responseOf(request, 5000);
-                writer.sendDataFrame(request);
+                writer.sendDataFrame(request, priority);
                 var frameData = future.waitForResult();
-                Log.debug("Frame data: " + frameData.toHex());
+                Log.debug("Frame data: {}", frameData.toHex());
                 var response = SetDatapointValue.Response.frameData(frameData);
                 if (response.isFailed()) {
                     throw new BAOSWriteException("BAOS cannot be written [ERROR: " + response.error().getDescription() + "]");

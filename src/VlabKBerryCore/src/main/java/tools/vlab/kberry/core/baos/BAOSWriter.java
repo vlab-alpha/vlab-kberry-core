@@ -34,13 +34,22 @@ public class BAOSWriter implements AckWriter {
     }
 
     public void sendDataFrame(DataFramePayload request) {
+        sendDataFrame(request, false);
+    }
+
+    public void sendDataFrame(DataFramePayload request, boolean priority) {
         boolean odd = isOddAndNext();
         var data = FT12Frame.Data.request(request, odd);
-        frames.addLast(data.toByteArray());
+        if (priority) {
+            frames.addFirst(data.toByteArray());
+        } else {
+            frames.addLast(data.toByteArray());
+        }
         Log.debug(
-                "Add To Stack: {} seq={} {}",
+                "Add To Stack: {} seq={} priority={} {}",
                 odd ? "ODD" : "EVENT",
                 sequence.get(),
+                priority,
                 data.toHex()
         );
     }

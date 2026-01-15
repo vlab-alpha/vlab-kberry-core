@@ -47,8 +47,7 @@ public class FloorHeater extends KNXDevice {
     }
 
     public void setMode(HeaterMode mode) {
-        var value = mode.getMode();
-        this.set(HVAC_OPERATING_MODE_SET, value);
+        this.set(HVAC_OPERATING_MODE_SET, mode);
     }
 
     public HeaterMode getCurrentMode() {

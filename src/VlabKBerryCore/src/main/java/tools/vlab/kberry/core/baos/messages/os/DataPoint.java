@@ -3,6 +3,7 @@ package tools.vlab.kberry.core.baos.messages.os;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.vlab.kberry.core.baos.ByteUtil;
+import tools.vlab.kberry.core.devices.HeaterMode;
 import tools.vlab.kberry.core.devices.RGB;
 
 import java.util.ArrayList;
@@ -12,6 +13,10 @@ import java.util.Optional;
 public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.State> states) {
 
     private static final Logger Log = LoggerFactory.getLogger(DataPoint.class);
+
+    public static DataPoint hvac(DataPointId id, HeaterMode mode) {
+        return new DataPoint(id, ByteUtil.mode(mode), new ArrayList<>());
+    }
 
     public static DataPoint uInt8(DataPointId id, int value) {
         return new DataPoint(id, ByteUtil.uInt8(value), new ArrayList<>());

@@ -16,12 +16,15 @@ public class PersistentValue<T> {
 
     private final Path filePath;
     private final AtomicReference<T> internalValue;
+    private final AtomicReference<Long> timestamp;
     private final Class<T> type;
 
     public PersistentValue(PositionPath positionPath, String name, T defaultValue, Class<T> type) {
         this.type = type;
         this.filePath = Paths.get("storage", positionPath.toId(name) + ".dat");
-        this.internalValue = new AtomicReference<>(load(defaultValue));
+        LoadedValue<T> loaded = load(defaultValue);
+        this.internalValue = new AtomicReference<>(loaded.value());
+        this.timestamp = new AtomicReference<>(loaded.timestamp());
 
         try {
             Files.createDirectories(filePath.getParent());
@@ -29,22 +32,33 @@ public class PersistentValue<T> {
         }
     }
 
-    private T load(T defaultValue) {
-        if (!Files.exists(filePath)) return defaultValue;
+    private LoadedValue<T> load(T defaultValue) {
+        if (!Files.exists(filePath)) {
+            return new LoadedValue<>(defaultValue, System.currentTimeMillis());
+        }
         try (DataInputStream dis = new DataInputStream(new FileInputStream(filePath.toFile()))) {
-            if (type == Long.class) return type.cast(dis.readLong());
-            if (type == Integer.class) return type.cast(dis.readInt());
-            if (type == Boolean.class) return type.cast(dis.readBoolean());
-            if (type == Float.class) return type.cast(dis.readFloat());
-            if (type == RGB.class) return type.cast(new RGB(dis.readInt(), dis.readInt(), dis.readInt()));
-            return defaultValue;
+            long ts = dis.readLong();
+            if (type == Long.class) return new LoadedValue<>(type.cast(dis.readLong()), ts);
+            if (type == Integer.class) return new LoadedValue<>(type.cast(dis.readInt()), ts);
+            if (type == Boolean.class) return new LoadedValue<>(type.cast(dis.readBoolean()), ts);
+            if (type == Float.class) return new LoadedValue<>(type.cast(dis.readFloat()), ts);
+            if (type == RGB.class) {
+                return new LoadedValue<>(
+                        type.cast(new RGB(dis.readInt(), dis.readInt(), dis.readInt())),
+                        ts
+                );
+            }
+
+            return new LoadedValue<>(defaultValue, ts);
         } catch (IOException e) {
-            return defaultValue;
+            return new LoadedValue<>(defaultValue, System.currentTimeMillis());
         }
     }
 
     private synchronized void persist(T value) {
+        long now = System.currentTimeMillis();
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(filePath.toFile()))) {
+            dos.writeLong(now);
             if (type == Long.class) dos.writeLong((Long) value);
             else if (type == Integer.class) dos.writeInt((Integer) value);
             else if (type == Boolean.class) dos.writeBoolean((Boolean) value);
@@ -56,7 +70,8 @@ public class PersistentValue<T> {
                 dos.writeInt(rgb.b());
             }
             dos.flush();
-            Log.debug("Persisted value: {}", value);
+            timestamp.set(now);
+            Log.debug("Persisted value: {} to path {}", value, this.filePath.getFileName());
         } catch (IOException e) {
             Log.error("Could not save data to {}", filePath, e);
         }
@@ -66,9 +81,21 @@ public class PersistentValue<T> {
         return internalValue.get();
     }
 
+    public long getTimestamp() {
+        return timestamp.get();
+    }
+
     public void set(T newValue) {
         internalValue.set(newValue);
         persist(newValue);
+    }
+
+    public long getAgeMillis() {
+        return System.currentTimeMillis() - timestamp.get();
+    }
+
+    public boolean isOlderThan(long millis) {
+        return getAgeMillis() > millis;
     }
 
     public synchronized long incrementAndGet() {
@@ -84,4 +111,6 @@ public class PersistentValue<T> {
         persist(newValue);
         return oldValue;
     }
+
+    private record LoadedValue<T>(T value, long timestamp) {}
 }

@@ -152,4 +152,8 @@ public record DataPoint(DataPointId id, byte[] payload, List<GetDatapointValue.S
     public String toHex() {
         return  ByteUtil.toHex(payload);
     }
+
+    public String toString() {
+        return String.format("%s = %s", id().id(), toHex());
+    }
 }

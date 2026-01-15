@@ -49,6 +49,8 @@ public class HumiditySensor extends KNXDevice {
 
     @Override
     public void load() throws BAOSReadException {
-        this.get(HUMIDITY_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentHumidity::set);
+        if (this.currentHumidity.isOlderThan(1000 * 60)) {
+            this.get(HUMIDITY_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentHumidity::set);
+        }
     }
 }

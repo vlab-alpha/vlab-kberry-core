@@ -50,6 +50,8 @@ public class VOCSensor extends KNXDevice {
 
     @Override
     public void load() throws BAOSReadException {
-        this.get(VOC_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentVoc::set);
+        if (this.currentVoc.isOlderThan(1000 * 60)) {
+            this.get(VOC_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentVoc::set);
+        }
     }
 }

@@ -189,8 +189,8 @@ public class SerialBAOSConnection {
                 var future = reader.responseOf(request, 5000);
                 writer.sendDataFrame(request, priority);
                 var frameData = future.waitForResult();
-                Log.debug("Frame data: {}", frameData.toHex());
                 var response = SetDatapointValue.Response.frameData(frameData);
+                Log.info("[{}] Sent DP: {}", (response.isFailed() ? "F" : "OK"), dataPoint);
                 if (response.isFailed()) {
                     throw new BAOSWriteException("BAOS cannot be written [ERROR: " + response.error().getDescription() + "]");
                 }

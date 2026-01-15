@@ -14,7 +14,7 @@ public class TemperatureSensor extends KNXDevice {
 
     private final PersistentValue<Float> currentTemp;
 
-    private TemperatureSensor(PositionPath positionPath,Integer refreshData) {
+    private TemperatureSensor(PositionPath positionPath, Integer refreshData) {
         super(positionPath, refreshData, Command.TEMPERATURE_ACTUAL);
         this.currentTemp = new PersistentValue<>(positionPath, "TemperaturSensor", 0.0f, Float.class);
     }
@@ -47,6 +47,8 @@ public class TemperatureSensor extends KNXDevice {
 
     @Override
     public void load() throws BAOSReadException {
-        this.get(Command.TEMPERATURE_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentTemp::set);
+        if (this.currentTemp.isOlderThan(1000 * 60)) {
+            this.get(Command.TEMPERATURE_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(currentTemp::set);
+        }
     }
 }

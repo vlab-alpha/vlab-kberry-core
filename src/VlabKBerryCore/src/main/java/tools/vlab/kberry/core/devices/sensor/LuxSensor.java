@@ -67,10 +67,12 @@ public class LuxSensor extends KNXDevice {
 
     @Override
     public void load() throws BAOSReadException {
-        this.get(Command.LUX_VALUE_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(lux -> {
-            currentLux.set(lux);
-            smoothedLux.set(lux);
-        });
+        if (this.currentLux.isOlderThan(1000 * 60)) {
+            this.get(Command.LUX_VALUE_ACTUAL).flatMap(DataPoint::getFloat9).ifPresent(lux -> {
+                currentLux.set(lux);
+                smoothedLux.set(lux);
+            });
+        }
     }
 
     private float smooth(float rawLux) {

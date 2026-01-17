@@ -5,9 +5,11 @@ public record RGB(int r, int g, int b) {
     public int red() {
         return r;
     }
+
     public int green() {
         return g;
     }
+
     public int blue() {
         return b;
     }
@@ -25,7 +27,7 @@ public record RGB(int r, int g, int b) {
 
         String value = hex.startsWith("#") ? hex.substring(1) : hex;
 
-        if (value.length() != 6) {
+        if (value.length() < 6) {
             throw new IllegalArgumentException("Hex color must be 6 characters long");
         }
 
@@ -43,5 +45,9 @@ public record RGB(int r, int g, int b) {
         if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
             throw new IllegalStateException("RGB values must be between 0 and 255");
         }
+    }
+
+    public boolean isBlack() {
+        return r == 0 && b == 0 && g == 0;
     }
 }

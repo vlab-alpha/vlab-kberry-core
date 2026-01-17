@@ -47,6 +47,14 @@ public class Dimmer extends KNXDevice {
         return this.currentBrightness.get();
     }
 
+    public int getBrightnessPercent() {
+        return Math.round(this.currentBrightness.get() * 100f / 255f);
+    }
+
+    public void setBrightnessPercent(int percent) {
+        this.set(Command.SET_BRIGHTNESS_ABS, Math.round(percent * 255f / 100f));
+    }
+
     public void setBrightness(int percent) {
         this.set(Command.SET_BRIGHTNESS_ABS, percent);
     }

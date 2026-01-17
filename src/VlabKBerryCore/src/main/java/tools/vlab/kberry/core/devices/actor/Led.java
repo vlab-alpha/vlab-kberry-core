@@ -50,7 +50,11 @@ public class Led extends KNXDevice {
     }
 
     public void setRGB(RGB rgb) {
-        this.set(Command.RGB_COLOR_CONTROL, rgb);
+        if (rgb.isBlack()) {
+            off();
+        } else {
+            this.set(Command.RGB_COLOR_CONTROL, rgb);
+        }
     }
 
     @Override

@@ -15,11 +15,10 @@ import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-// FIXME: ein Flag, ob ein Refrehs Anforderung an BAOS erfolgen soll wenn der app cache nicht geladen wurde oder besser,
-//  wenn die Daten nicht alt sind im cache dann soll kein Refresh getriggert werden!!
 public class SerialBAOSConnection {
 
     private static final Logger Log = LoggerFactory.getLogger(SerialBAOSConnection.class);
+    private final static int WAIT_RETRY_MS = 100;
 
     private final SerialPort port;
     private final int timeout;
@@ -48,24 +47,30 @@ public class SerialBAOSConnection {
     }
 
     public void connect() throws TimeoutException {
-        if (port.openPort()) {
-            writer.start();
-            reader.start();
-            writer.sendReset();
-            reader.waitForAck(1000);
-            startObserver();
+        for (int retry = 0; retry < 5; retry++) {
             try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                if (port.openPort()) {
+                    writer.start();
+                    reader.start();
+                    writer.sendReset();
+                    reader.waitForAck(2000);
+                    startObserver();
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    if (reloadDevice != null) {
+                        reloadDevice.load();
+                    }
+                    return;
+                } else {
+                    throw new RuntimeException("Failed to start serial port");
+                }
+            } catch (TimeoutException e) {
+                Log.info("Connection Timeout retry {}", retry);
             }
-            if (reloadDevice != null) {
-                reloadDevice.load();
-            }
-        } else {
-            throw new RuntimeException("Failed to start serial port");
         }
-
     }
 
     public void disconnect() {
@@ -172,7 +177,15 @@ public class SerialBAOSConnection {
         try {
             while (running && !Thread.currentThread().isInterrupted()) {
                 var datapoint = dataPoints.takeFirst();
-                send(datapoint.dataPoint(), datapoint.priority());
+                if (datapoint.retry() < this.retries) {
+                    if (datapoint.retry() > 1) {
+                        Log.info("[{}] Retry Execution > 1 wait for {}ms ...", datapoint.dataPoint().getId(), WAIT_RETRY_MS);
+                        Thread.sleep(WAIT_RETRY_MS);
+                    }
+                    send(datapoint.dataPoint(), datapoint.priority(), datapoint.retry());
+                } else {
+                    Log.error("[{}] Sent DP Timeout failed [Payload: {}; Retry: > {}]", datapoint.dataPoint().getId(), datapoint.dataPoint().toHex(), retries);
+                }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -182,7 +195,7 @@ public class SerialBAOSConnection {
         }
     }
 
-    private void send(DataPoint dataPoint, boolean priority) throws BAOSWriteException {
+    private void send(DataPoint dataPoint, boolean priority, int retry) {
         synchronized (writeLock) {
             try {
                 var request = SetDatapointValue.Request.setCacheAndBus(dataPoint);
@@ -190,12 +203,14 @@ public class SerialBAOSConnection {
                 writer.sendDataFrame(request, priority);
                 var frameData = future.waitForResult();
                 var response = SetDatapointValue.Response.frameData(frameData);
-                Log.info("[{}] Sent DP: {}", (response.isFailed() ? "F" : "OK"), dataPoint);
                 if (response.isFailed()) {
-                    throw new BAOSWriteException("BAOS cannot be written [ERROR: " + response.error().getDescription() + "]");
+                    Log.error("[{}] Sent Fail", dataPoint.getId());
+                } else {
+                    Log.info("[{}] Sent OK", dataPoint.getId());
                 }
             } catch (TimeoutException e) {
-                throw new BAOSWriteException("Timeout [ERROR: " + e.getMessage() + "]");
+                Log.info("[{}] Sent DP Timeout [retry:{}]", dataPoint.getId(), retry);
+                dataPoints.addLast(DataPointPriority.retry(dataPoint, retry));
             }
         }
     }
@@ -310,7 +325,7 @@ public class SerialBAOSConnection {
         var setDataPointFrame = future.waitForResult();
         writer.sendAck();
         var setDP = SetDatapointValue.Response.frameData(setDataPointFrame);
-        Log.info("Update Cache [ID:{} Fail:{} Hex:{}]", id.id(), setDP.isFailed(), setDataPointFrame.toHex());
+        Log.info("Update Cache [ID:{} {} Hex:{}]", id.id(), (setDP.isFailed() ? "FAIL" : "OK"), setDataPointFrame.toHex());
         if (setDP.isFailed()) {
             throw new BAOSReadException("Update cache failed [ERROR:" + setDP.error().getDescription() + "]");
         }

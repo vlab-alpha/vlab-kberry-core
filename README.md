@@ -6,6 +6,9 @@ It focuses on **correct protocol handling**, **asynchronous behavior**, and **cl
 The library is designed for developers who want **full control** over KNX communication without ETS or opaque SDKs.
 
 ---
+![5637156979_40 jpg](https://github.com/user-attachments/assets/abc63619-b744-4881-8a02-ecbd0469dfb1)
+
+
 
 ## Motivation
 
@@ -37,27 +40,6 @@ Kberry Core was built to handle these realities **correctly and deterministicall
 - Thread-safe reader/writer architecture
 - No hidden retries or magic behavior
 - Designed for **production-grade KNX integrations**
-
----
-
-## Architecture Overview
-┌──────────────┐
-│ Application  │
-└──────┬───────┘
-       │
-┌──────▼────────┐
-│ SerialBAOS    │  High-level API
-│ Connection    │
-└──────┬────────┘
-       │
-┌──────▼────────┐      ┌──────────────┐
-│ BAOSWriter    │ —>   │ Serial Port  │
-│ (FT1.2)       │      └──────────────┘
-└───────────────┘
-┌───────────────┐
-│ BAOSReader    │ <— Incoming Frames
-│ + Parser      │
-└───────────────┘
 
 ---
 

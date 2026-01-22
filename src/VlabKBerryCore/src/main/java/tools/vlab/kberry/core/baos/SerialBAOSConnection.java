@@ -180,9 +180,10 @@ public class SerialBAOSConnection {
                 if (datapoint.retry() < this.retries) {
                     if (datapoint.retry() > 1) {
                         Log.info("[{}] Retry Execution > 1 wait for {}ms ...", datapoint.dataPoint().getId(), WAIT_RETRY_MS);
-                        Thread.sleep(WAIT_RETRY_MS);
+                        Thread.sleep(WAIT_RETRY_MS * 2);
                     }
                     send(datapoint.dataPoint(), datapoint.priority(), datapoint.retry());
+                    Thread.sleep(100);
                 } else {
                     Log.error("[{}] Sent DP Timeout failed [Payload: {}; Retry: > {}]", datapoint.dataPoint().getId(), datapoint.dataPoint().toHex(), retries);
                 }

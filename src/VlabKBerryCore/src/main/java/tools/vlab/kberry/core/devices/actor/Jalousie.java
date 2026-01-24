@@ -14,7 +14,7 @@ public class Jalousie extends KNXDevice {
 
     private final PersistentValue<Integer> currentPosition;
 
-    private Jalousie(PositionPath positionPath,Integer refreshData) {
+    private Jalousie(PositionPath positionPath, Integer refreshData) {
         super(positionPath,
                 refreshData,
                 Command.SHUTTER_UP_DOWN_CONTROL,
@@ -58,7 +58,7 @@ public class Jalousie extends KNXDevice {
     }
 
     public void setPositionPercent(int percent) {
-        this.set(Command.SHUTTER_POSITION_ACTUAL_STATUS, Math.round(percent * 255f / 100f));
+        setPosition(Math.round(percent * 255f / 100f));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class Jalousie extends KNXDevice {
         switch (command) {
             case SHUTTER_POSITION_ACTUAL_STATUS -> dataPoint.getUInt8().ifPresent(value -> {
                 this.currentPosition.set(value);
-                getListener().forEach(status-> status.positionChanged(this, value));
+                getListener().forEach(status -> status.positionChanged(this, value));
             });
         }
     }

@@ -22,11 +22,15 @@ public class OnOffDevice extends KNXDevice {
     }
 
     public void on() {
-        this.set(Command.ON_OFF_SWITCH, true, true);
+        if (!currentValue.get()) {
+            this.set(Command.ON_OFF_SWITCH, true, true);
+        }
     }
 
     public void off() {
-        this.set(Command.ON_OFF_SWITCH, false);
+        if (currentValue.get()) {
+            this.set(Command.ON_OFF_SWITCH, false);
+        }
     }
 
     public boolean isOn() {

@@ -197,7 +197,7 @@ public abstract class KNXDevice {
         listeners.add(listener);
     }
 
-    public <T extends StatusListener> void RemoveListener(T listener) {
+    public <T extends StatusListener> void removeListener(T listener) {
         listeners.remove(listener);
     }
 

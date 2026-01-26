@@ -100,7 +100,7 @@ public abstract class KNXDevice {
             case SINT8 -> this.write(DataPoint.sInt8(bao.dataPointId(), value), priority);
             case SINT16 -> this.write(DataPoint.sint16(bao.dataPointId(), value), priority);
             case SINT32 -> this.write(DataPoint.sint32(bao.dataPointId(), value), priority);
-            case UINT8 -> this.write(DataPoint.uInt8(bao.dataPointId(), value), priority);
+            case UINT8, SCENE_NUMBER -> this.write(DataPoint.uInt8(bao.dataPointId(), value), priority);
             case UINT16 -> this.write(DataPoint.uInt16(bao.dataPointId(), value), priority);
             case UINT32 -> this.write(DataPoint.uint32(bao.dataPointId(), value), priority);
             default -> throw new InvalidCommandException(String.format("Unknown command %s", command));

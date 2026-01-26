@@ -55,7 +55,7 @@ public enum Command {
     // --- Datum / Zeit / System (DPT 10, DPT 11, DPT 17) ---
     SYSTEM_TIME_ACTUAL(Communication.READ, KnxDatapointType.TIME),
     SYSTEM_DATE_ACTUAL(Communication.READ, KnxDatapointType.DATE),
-    SCENE_ACTIVATION(Communication.WRITE, KnxDatapointType.SCENE_NUMBER),
+    SCENE_ACTIVATION(Communication.READWRITE, KnxDatapointType.SCENE_NUMBER),
     ;
 
 

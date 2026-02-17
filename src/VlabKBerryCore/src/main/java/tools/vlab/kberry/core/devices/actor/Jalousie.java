@@ -61,6 +61,14 @@ public class Jalousie extends KNXDevice {
         setPosition(Math.round(percent * 255f / 100f));
     }
 
+    public boolean isDown() {
+        return this.currentPosition.get() == 0;
+    }
+
+    public boolean isUp() {
+        return this.currentPosition.get() == 255;
+    }
+
     @Override
     protected void received(Command command, DataPoint dataPoint) {
         switch (command) {

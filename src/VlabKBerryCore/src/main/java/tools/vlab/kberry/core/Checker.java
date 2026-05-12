@@ -1,11 +1,11 @@
 package tools.vlab.kberry.core;
 
-import tools.vlab.kberry.core.devices.KNXDevices;
-import tools.vlab.kberry.core.devices.PushButtonStatus;
-import tools.vlab.kberry.core.devices.actor.Light;
-import tools.vlab.kberry.core.devices.actor.OnOffDevice;
-import tools.vlab.kberry.core.devices.actor.OnOffStatus;
-import tools.vlab.kberry.core.devices.sensor.*;
+import tools.vlab.kberry.core.knx.devices.KNXDevices;
+import tools.vlab.kberry.core.knx.devices.PushButtonStatus;
+import tools.vlab.kberry.core.knx.devices.actor.Light;
+import tools.vlab.kberry.core.knx.devices.actor.OnOffDevice;
+import tools.vlab.kberry.core.knx.devices.actor.OnOffStatus;
+import tools.vlab.kberry.core.knx.devices.sensor.*;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

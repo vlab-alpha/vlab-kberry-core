@@ -1,13 +1,10 @@
 package tools.vlab.kberry.core;
 
-import tools.vlab.kberry.core.baos.SerialBAOSConnection;
-import tools.vlab.kberry.core.baos.TimeoutException;
-import tools.vlab.kberry.core.devices.KNXDevices;
-import tools.vlab.kberry.core.devices.PushButton;
-import tools.vlab.kberry.core.devices.actor.Light;
-import tools.vlab.kberry.core.devices.sensor.HumiditySensor;
-import tools.vlab.kberry.core.devices.sensor.PresenceSensor;
-import tools.vlab.kberry.core.devices.sensor.VOCSensor;
+import tools.vlab.kberry.core.knx.baos.SerialBAOSConnection;
+import tools.vlab.kberry.core.knx.baos.TimeoutException;
+import tools.vlab.kberry.core.knx.devices.KNXDevices;
+import tools.vlab.kberry.core.knx.devices.PushButton;
+import tools.vlab.kberry.core.knx.devices.actor.Light;
 
 import java.io.IOException;
 import java.nio.file.Path;

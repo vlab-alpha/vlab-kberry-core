@@ -1,7 +1,8 @@
 package tools.vlab.kberry.core.baos;
 
 import org.junit.jupiter.api.Test;
-import tools.vlab.kberry.core.devices.RGB;
+import tools.vlab.kberry.core.knx.baos.ByteUtil;
+import tools.vlab.kberry.core.RGB;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,6 +1,7 @@
 package tools.vlab.kberry.core.baos.messages.os;
 
 import org.junit.jupiter.api.Test;
+import tools.vlab.kberry.core.knx.baos.messages.os.GetDatapointValue;
 
 import java.util.List;
 

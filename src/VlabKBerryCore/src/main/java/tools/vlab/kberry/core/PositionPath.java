@@ -13,6 +13,10 @@ public interface PositionPath {
     default boolean isSame(PositionPath positionPath) {
         return this.getId().equalsIgnoreCase(positionPath.getId());
     }
+
+    default boolean isSamePath(String path) {
+        return this.getPath().equalsIgnoreCase(path);
+    }
     default String getPath() {
         return String.join("/", getLocation(), getFloor(), getRoom(), getPosition());
     }

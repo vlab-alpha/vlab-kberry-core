@@ -1,148 +1,239 @@
-# V.Lab Kberry Core (BAOS / FT1.2)
+# vlab-kberry-core
 
-Kberry Core is a Java-based library for reliable, low-level communication with **KNX BAOS (Binary Application Object Server)** devices over **FT1.2 / serial** connections.  
-It focuses on **correct protocol handling**, **asynchronous behavior**, and **clean separation between Requests, Responses, and Indications**.
+`vlab-kberry-core` is a lightweight Java framework for implementing Smart Home logic without the overhead of large automation platforms, complex UI systems, or heavy configuration.
 
-The library is designed for developers who want **full control** over KNX communication without ETS or opaque SDKs.
+The main idea behind the project is simple:
 
----
-![5637156979_40 jpg](https://github.com/user-attachments/assets/abc63619-b744-4881-8a02-ecbd0469dfb1)
+> Access Smart Home devices through a unified Java API and implement automation logic directly in code.
 
+The framework provides abstractions for different Smart Home technologies such as:
 
+* KNX devices
+* Custom MQTT devices
+* Shelly devices
 
-## Motivation
-
-One of the main reasons for developing this library was the lack of a suitable solution in existing tools.
-Calimero did not provide a reliable or fast mechanism to receive immediate updates when values change, and Weinzierl officially offers libraries only for C# and C++.
-KNX BAOS devices behave differently from typical request/response protocols:
-
-- Responses can be **delayed**
-- Values may arrive **as Indications**
-- Cache updates are **asynchronous**
-- KNX Data subscription.
-- Multiple frames may reference the **same datapoint ID**
-- Serial timing and blocking behavior matter
-
-Kberry Core was built to handle these realities **correctly and deterministically**.
+Instead of building automations through graphical editors or complicated rule engines, developers can implement their Smart Home logic directly in Java using simple enums and device abstractions.
 
 ---
 
-## Features
+# Goal of the Project
 
-- FT1.2 frame parsing and generation
-- Full BAOS Object Server support
-- Proper handling of:
-  - Requests
-  - Responses
-  - Indications
-- Asynchronous datapoint updates
-- Explicit ACK handling
-- Thread-safe reader/writer architecture
-- No hidden retries or magic behavior
-- Designed for **production-grade KNX integrations**
+Most Smart Home systems require:
 
----
+* large configuration files
+* UI-based automation editors
+* vendor-specific integrations
+* additional middleware
+* complicated deployment structures
 
-## Core Components
+`vlab-kberry-core` focuses on the opposite approach:
 
-### `SerialBAOSConnection`
-High-level API for:
-- Reading datapoints
-- Writing datapoints
-- Listening to value changes
-- Handling server item states
+* Simple Java-first development
+* Direct device access
+* Unified device handling
+* Minimal setup overhead
+* Clean and maintainable logic implementations
 
-This is the main entry point for applications.
+The goal is to allow developers to write Smart Home automation logic like regular backend software.
 
 ---
 
-### `BAOSWriter`
-Responsible for:
-- Sending FT1.2 frames
-- Managing ODD / EVEN toggle
-- Sending ACKs
-- Reset handling
+# Core Idea
 
-No implicit retries or delays.
+Devices are organized through enums and reusable abstractions.
 
----
+Instead of manually searching for MQTT topics, KNX group addresses, or Shelly endpoints everywhere in the code, devices are centrally defined and can be reused throughout the application.
 
-### `BAOSReader`
-Responsible for:
-- Reading raw serial bytes
-- Parsing FT1.2 frames
-- Separating:
-  - Responses
-  - Indications
-  - ACKs
-- Dispatching frames to listeners or futures
+This enables:
+
+* strongly typed device access
+* centralized device management
+* reusable automation logic
+* cleaner code structure
+* easier maintenance
 
 ---
 
-### FT1.2 Parser
-- Stream-based
-- Handles partial frames
-- Safe against serial timing issues
+# Supported Technologies
 
+Currently supported integrations include:
+
+## KNX
+
+Access KNX devices such as:
+* Jalousies
+* Lights
+* LUX sensors
+* Floor heater
+* LED (RGB)
+* Dimmer
+* Temperature sensor
+* VOC sensor
+* Presence sensor
+* Humidity sensor
+* Push button
+
+## MQTT Custom Devices
+
+Custom MQTT devices can be integrated using a simple abstraction layer.
+Currently implemented example:
+* FAN device
+
+## Shelly Devices
+
+Simple access to Shelly devices over the network.
+Example:
+* Shelly Plug
+* Shelly LED
 ---
 
-## Usage Example
+# Example Usage
 
-### Connect
+## 1. Custom MQTT FAN
+
+Example of controlling a custom MQTT fan device.
 
 ```java
-// Serial Interface; Timeout; Retry
-SerialBAOSConnection connection = new SerialBAOSConnection("/dev/ttyAMA0", 1000, 10);
-KNXDevices devices = new KNXDevices(connection);
-// House is a enum who implemented the interface PositionPath 
-devices.register(PresenceSensor.at(House.OfficeTop)); 
-devices.register(Light.at(House.KitchenWall));
-// ... register all devices with the specified Position
+CustomMqttDevices customMqttDevices = new CustomMqttDevices("mqtt broker url");
+customMqttDevices.getDevice(Fan.class, Haus.BathWall).ifPresent(fan -> fan.setSpeed(2));
+```
 
-// The export is necessary for the CSV-based import process of the Weinzierl BAOS Importer.
-// [https://weinzierl.de/images/download/products/dca/baoscsvimporter/weinzierl_dca_baos_csv_importer_manual_de.pdf]
+Example idea:
+
+* Automatically enable the fan when humidity rises.
+* Turn off the fan after a timeout.
+
+---
+
+## 2. Shelly Plug
+
+Example of accessing a Shelly Plug device.
+
+```java
+ShellyDevices shellyDevice = new ShellyDevices("mqtt broker url");
+shellyDevice.getDevicesByRoom(Plug.class, "myRoom").forEach(Plug::on);
+```
+
+Example idea:
+
+* Automatically switch off standby devices.
+* Enable devices based on schedules or presence.
+
+---
+
+## 3. KNX Light
+
+Example of controlling KNX blinds.
+
+```java
+devices.register(Light.at(Haus.BathTop));
 devices.exportCSV(Path.of("weinzierl_export.csv"));
-
-connection.connect();
-connection.disconnect();
-
+devices.getKNXDevices(Light.class).forEach(Light::on);
 ```
 
-### Get Devices
-All registered devices can be accessed through the Devices section, where they can also be searched. 
+Example idea:
+
+* register Device at first.
+* Export the csv file (important for the ETS Weinzierl import).
+* Search device and add action.
+
+---
+
+# Philosophy
+
+`vlab-kberry-core` is intentionally focused on code-driven automation.
+
+It is designed for developers who:
+
+* prefer writing logic in Java
+* want full control over their automations
+* dislike heavy UI-based systems
+* want reusable and testable Smart Home logic
+* prefer software engineering principles over click-based automation editors
+
+---
+
+# Architecture Overview
+
+The framework separates:
+
+* device access
+* communication layers
+* automation logic
+
+This allows automation logic to remain clean and independent from the underlying transport technology.
+
+Example:
+
+```text
+Automation Logic
+        ↓
+Device Abstractions
+        ↓
+KNX / MQTT / Shelly
+```
+
+---
+
+# Example Automation Logic
+
 ```java
-// Get all Humidity Sensors
-var myListOfDevices = devices.getKNXDevices(HumiditySensor.class);
-// Get device from position Path
-var myOptionalDevice = devices.getKNXDevice(PresenceSensor.class, House.OfficeTop);
-// Get all push in the room
-var myPushDeviceFromKitchen = devices.getKNXDevicesByRoom(Push.class, "kitchen");
+if (bathroomHumidity.isAbove(70)) {
+    bathroomFan.turnOn();
+}
+
+if (presenceDetector.isAbsentForMinutes(10)) {
+    livingroomLights.turnOff();
+}
 ```
 
-### Device
-Each device provides individual functions. For example, a light can be switched on and off, while a floor heating system allows setting the operating mode and target temperature.
-In addition, each device has its own observer mechanism, allowing interested parties to subscribe and receive updates whenever a value changes, such as temperature or presence.
-```java
-devices.getKNXDevice(PresenceSensor.class, House.Office).get().addListener((sensor, available) -> {
-    var isAvailable = available;
-    var timeInSecond = sensor.getLastPresentSecond();
-    System.out.println("Somone "+(!isAvailable?"was":"")+" in the room for"+(timeInSecond)+" second ago!");
-});
-devices.getKNXDevice(Light.class, HausTester.Office).get().on();
-```
+The goal is to keep Smart Home automation readable and close to natural business logic.
 
-## Device
-### Fast Updates & Indicators
-When a value changes (for example, a presence sensor), the update is received and processed within approximately 300 ms.
-Indicator messages always have priority, including over regular Object Server responses.
-This ensures that state changes are propagated immediately and are not delayed by polling or request/response cycles.
+---
 
-### Local Caching & Persistence
-All values are buffered in the application’s memory.
-When a value is requested, it is always served directly from the application RAM, ensuring fast and deterministic access.
+# Use Cases
 
-In addition, all values are persisted to disk.
+Typical use cases:
 
+* Smart Home automation
+* Building automation
+* Presence-based logic
+* Climate control
+* Energy optimization
+* Custom device integrations
+* MQTT-based IoT systems
+* KNX automation projects
 
+---
 
+# Design Principles
 
+* Java-first
+* Minimal configuration
+* Reusable abstractions
+* Technology-independent logic
+* Clean code structure
+* Developer-oriented
+* Lightweight architecture
+
+---
+
+# Status
+
+The project is under active development.
+
+Current focus:
+
+* improving device abstractions
+* extending KNX support
+* extending MQTT custom devices
+* additional Shelly integrations
+* simplifying Smart Home logic implementation
+
+---
+
+# Repository
+
+GitHub Repository:
+
+[https://github.com/vlab-alpha/vlab-kberry-core](https://github.com/vlab-alpha/vlab-kberry-core)

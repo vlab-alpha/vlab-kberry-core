@@ -5,6 +5,11 @@ import tools.vlab.kberry.core.knx.baos.TimeoutException;
 import tools.vlab.kberry.core.knx.devices.KNXDevices;
 import tools.vlab.kberry.core.knx.devices.PushButton;
 import tools.vlab.kberry.core.knx.devices.actor.Light;
+import tools.vlab.kberry.core.mqtt.custom.devices.CustomMqttDevices;
+import tools.vlab.kberry.core.mqtt.custom.devices.actor.Fan;
+import tools.vlab.kberry.core.mqtt.shelly.devices.ShellyDevice;
+import tools.vlab.kberry.core.mqtt.shelly.devices.ShellyDevices;
+import tools.vlab.kberry.core.mqtt.shelly.devices.device.Plug;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -17,6 +22,11 @@ public class Main {
         SerialBAOSConnection connection = null;
         try {
             connection = new SerialBAOSConnection("/dev/ttyAMA0", 5000, 10);
+            ShellyDevices shellyDevice = new ShellyDevices("mqtt url");
+            shellyDevice.getDevicesByRoom(Plug.class, "myRoom").forEach(Plug::on);
+
+            CustomMqttDevices customMqttDevices = new CustomMqttDevices("mqtt url");
+            customMqttDevices.getDevice(Fan.class, Haus.BathWall).ifPresent(fan -> fan.setSpeed(2));
 
             KNXDevices devices = new KNXDevices(connection);
 // Push Taster

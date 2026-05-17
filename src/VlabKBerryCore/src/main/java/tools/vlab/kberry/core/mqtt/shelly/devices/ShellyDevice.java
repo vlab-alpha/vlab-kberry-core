@@ -14,7 +14,6 @@ public abstract class ShellyDevice extends MqttDevice<ShellyCommand, ShellyDataP
 
     public Vector<StatusListener> listeners = new Vector<>();
     protected ShellyWriter writer;
-    private String id;
 
     protected ShellyDevice(PositionPath positionPath, Integer refreshIntervalMs, String eventKey) {
         this.positionPath = positionPath;
@@ -29,24 +28,20 @@ public abstract class ShellyDevice extends MqttDevice<ShellyCommand, ShellyDataP
         listeners.remove(listener);
     }
 
-    protected void init(String id, ShellyWriter writer) {
-        this.id = id;
-        this.writer = writer;
-    }
 
     public abstract void load();
 
     protected abstract void received(ShellyCommand command, ShellyDataPoint datapoint);
 
     protected void set(ShellyCommand mqttCommand, boolean b) {
-        writer.write(this.id, mqttCommand, ShellyDataPoint.bool(b));
+        writer.write(this.deviceId, mqttCommand, ShellyDataPoint.bool(b));
     }
 
     protected void set(ShellyCommand mqttCommand, ShellyDataPoint dataPoint) {
-        writer.write(this.id, mqttCommand, dataPoint);
+        writer.write(this.deviceId, mqttCommand, dataPoint);
     }
 
     protected void get(ShellyCommand mqttCommand) {
-        writer.write(this.id, mqttCommand);
+        writer.write(this.deviceId, mqttCommand);
     }
 }

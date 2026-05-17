@@ -81,12 +81,28 @@ public abstract class MqttDevices<TDevice extends MqttDevice<TCommand, TDataPoin
                 .collect(Collectors.toList());
     }
 
+    public <T extends TDevice> List<T> getDevicesByRoom(Class<T> clazz, PositionPath path) {
+        return devices.stream()
+                .filter(d -> d.getPositionPath().sameRoom(path))
+                .filter(clazz::isInstance)
+                .map(clazz::cast)
+                .collect(Collectors.toList());
+    }
+
     public <T extends TDevice> List<T> getDevicesByFloor(Class<T> clazz, String floor) {
         return devices.stream()
                 .filter(clazz::isInstance)
                 .filter(d -> d.getPositionPath().getFloor().equalsIgnoreCase(floor))
                 .map(clazz::cast)
                 .collect(Collectors.toList());
+    }
+
+    public <T extends TDevice> Optional<T> getDeviceByFloor(Class<T> clazz, String floor) {
+        return devices.stream()
+                .filter(clazz::isInstance)
+                .filter(d -> d.getPositionPath().getFloor().equalsIgnoreCase(floor))
+                .map(clazz::cast)
+                .findFirst();
     }
 
     protected abstract String clientId();

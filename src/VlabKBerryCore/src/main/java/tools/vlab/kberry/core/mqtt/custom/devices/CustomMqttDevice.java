@@ -5,14 +5,13 @@ import tools.vlab.kberry.core.PositionPath;
 import tools.vlab.kberry.core.RGB;
 import tools.vlab.kberry.core.knx.devices.Communication;
 import tools.vlab.kberry.core.InvalidCommandException;
+import tools.vlab.kberry.core.mqtt.MqttDevice;
 
 import java.util.List;
 import java.util.Vector;
 
-public abstract class CustomMqttDevice extends tools.vlab.kberry.core.mqtt.MqttDevice<CustomCommand, CustomDataPoint> {
-
-    @Getter
-    private String deviceId;
+public abstract class CustomMqttDevice extends MqttDevice<CustomCommand, CustomDataPoint> {
+    
     private final List<CustomCommand> cmd;
     public Vector<StatusListener> listeners = new Vector<>();
     @Getter
@@ -39,12 +38,6 @@ public abstract class CustomMqttDevice extends tools.vlab.kberry.core.mqtt.MqttD
     public abstract void load();
 
     protected abstract void received(CustomCommand command, CustomDataPoint datapoint);
-
-    public PositionPath init(String deviceId, MqttCommandWriter writer) {
-        this.deviceId = deviceId;
-        this.writer = writer;
-        return this.positionPath;
-    }
 
     // GETTER
 

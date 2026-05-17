@@ -139,6 +139,13 @@ public class KNXDevices implements ReloadDevice {
                 .collect(Collectors.toList());
     }
 
+    public <T extends KNXDevice> List<T> getKNXDevicesByFloor(Class<T> clazz, String floor) {
+        return this.devices.stream()
+                .filter(d -> d.getPositionPath().getFloor().equalsIgnoreCase(floor))
+                .map(clazz::cast)
+                .collect(Collectors.toList());
+    }
+
     /**
      * Returns all KNX devices of a given type on a specific floor.
      *
@@ -146,9 +153,9 @@ public class KNXDevices implements ReloadDevice {
      * @param floor floor name
      * @return list of matching devices
      */
-    public <T extends KNXDevice> List<T> getKNXDevicesByFloor(Class<T> clazz, String floor) {
+    public <T extends KNXDevice> List<T> getKNXDevicesByFloor(Class<T> clazz, PositionPath floor) {
         return this.devices.stream()
-                .filter(d -> d.getPositionPath().getFloor().equalsIgnoreCase(floor))
+                .filter(d -> d.getPositionPath().sameFloor(floor))
                 .map(clazz::cast)
                 .collect(Collectors.toList());
     }

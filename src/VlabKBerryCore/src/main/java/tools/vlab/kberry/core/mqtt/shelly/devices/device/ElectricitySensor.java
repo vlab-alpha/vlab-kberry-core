@@ -22,6 +22,10 @@ public class ElectricitySensor extends ShellyDevice {
     public void load() {
     }
 
+    public static ElectricitySensor at(PositionPath positionPath) {
+        return new ElectricitySensor(positionPath, null);
+    }
+
     private List<ElectricStatus> getListener() {
         return this.listeners.stream()
                 .filter(l -> l instanceof ElectricStatus)

@@ -7,9 +7,9 @@ import java.util.stream.Stream;
 
 public enum CustomCommand {
 
-    STATUS(Communication.READWRITE, CustomDataPointType.BOOL, 0),
+    SET_STATUS(Communication.READWRITE, CustomDataPointType.INT, 0),
     GET_STATUS(Communication.WRITE, CustomDataPointType.BOOL, 1),
-    SPEED(Communication.READWRITE, CustomDataPointType.INT, 2),
+    SET_SPEED(Communication.READWRITE, CustomDataPointType.INT, 2),
     GET_SPEED(Communication.WRITE, CustomDataPointType.INT, 3),
     COLOR(Communication.READWRITE, CustomDataPointType.RGB, 4),
     GET_COLOR(Communication.READWRITE, CustomDataPointType.RGB, 5),

@@ -6,31 +6,28 @@ import tools.vlab.kberry.core.RGB;
 import tools.vlab.kberry.core.RGBW;
 import tools.vlab.kberry.core.mqtt.shelly.devices.ShellyCommand;
 import tools.vlab.kberry.core.mqtt.shelly.devices.ShellyDataPoint;
-import tools.vlab.kberry.core.mqtt.shelly.devices.ShellyDevice;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static tools.vlab.kberry.core.mqtt.shelly.devices.ShellyCommand.*;
 
-public class Led extends ShellyDevice {
+public class Led extends ShellySwitch {
 
-    private final PersistentValue<Boolean> status;
     private final PersistentValue<RGBW> color;
     private final PersistentValue<Integer> brightness;
 
     public Led(PositionPath positionPath, Integer refreshIntervalMs) {
         super(positionPath, refreshIntervalMs, "rgbw:0");
-        this.status     = new PersistentValue<>(positionPath, "ledStatus",     false,                       Boolean.class);
         this.color      = new PersistentValue<>(positionPath, "ledColor",      new RGBW(255, 255, 255, 0),  RGBW.class);
         this.brightness = new PersistentValue<>(positionPath, "ledBrightness", 100,                         Integer.class);
     }
 
-    // --- Status ---
-
-    public boolean isOn() {
-        return status.get();
+    public static Led at(PositionPath positionPath) {
+        return new Led(positionPath, null);
     }
+
+    // --- Status ---
 
     public void on() {
         set(SET_RGBW_STATUS, ShellyDataPoint.rgbw(true, color.get(), brightness.get()));
